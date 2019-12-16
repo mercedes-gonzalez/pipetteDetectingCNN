@@ -7,10 +7,12 @@
 % Updated Mercedes Gonzalez December 2019
 % clear all; close all; clc
 
-% set the path directory for images on the local machine to be stored
-% in a 4D array
-folderPath =  'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019 NET\multibot-2019'; 
+% pipettePath = folder where all pipette images are
+% slicePath = folder where all slice only images are
+pipettePath =  'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019 NET\multibot-2019'; 
+slicePath = 'C:\Users\mgonzalez91\Dropbox (GaTech)\Research\Pipette Detection\Pipette and cell finding\2019 NET\CNN Testing Images\SliceOnly';
 
+% Settings 
 usingPC = true;
 appendToExisting = true;   % add data to existing mat file
 normalizeImages = true;
@@ -18,16 +20,17 @@ makeTrainingSet = true;     % split data into training and validation data
 mirrorLR = true;           % mirror images across the vertical axis
 mirrorUD = true;           % mirror images across the horizontal axis
 imageSize = [224 224];      % standard image size for resnet50() is [224 224 3]
-dChannels = 1;  % desired number of channels in the image ex. [xx xx dChannels];
+dChannels = 1;              % desired number of channels in the image ex. [xx xx dChannels];
 pTrainingData = 0.98;    % fraction of images to be training (not validation)
+n=2;                    % number of standard deviations for normalization
 
 % MATfilename = strcat('pipetteXYZdata_',string(date),'.mat')
-MATfilename = strcat('pipetteXYZdata_25-Oct-2019.mat');
+MATfilename = 'pipetteXYZdata_25-Oct-2019.mat';
 
 %% count subfolders
-% get all folders inside folderPath then count the folders. In addition,
+% get all folders inside pipettePath then count the folders. In addition,
 % determine the name of all subfolders to be used later.
-S = dir(folderPath);
+S = dir(pipettePath);
 nFolders = sum([S(~ismember({S.name},...
     {'.','..','.dropbox','desktop.ini','.DS_Store','Icon','trainingImages'})).isdir]);
 subFolderInfo = S(~ismember({S.name},...
@@ -41,20 +44,21 @@ if exist(MATfilename,'file')>0 && appendToExisting == true
     % get the length of the current log for use later
     startingIDX = length(pipetteLog);
     loadedPreviousData = true;
+elseif exist(MATfilename,'file') == 0 
+    error(strcat(MATfilename,' does not exist.');
 else
+    fprintf('Starting new datastore.')
     loadedPreviousData = false;
     startingIDX = 0;
 end
 % add the folder and its sub folders to the search path
-addpath(genpath(folderPath)) 
+addpath(genpath(pipettePath)) 
 
 % define the accepted file extensions to search for.
 fileExt = {'.png','.jpg','.tif'};
 
 % create an image datastore
-imds = imageDatastore(folderPath,...
-    'FileExtensions',fileExt,...
-    'Includesubfolders',true);
+imds = imageDatastore(pipettePath,'FileExtensions',fileExt,'Includesubfolders',true);
 
 %% init the pipetteImg and pipetteLog arrays
 [~,~,totalChannels] = size(imread(imds.Files{1}));
@@ -65,7 +69,7 @@ pipetteLog = zeros(1,5);
 %% create image labels
 % read the name of the folder. use this to find the name of the log file.
 for ii = 1:nFolders
-%     [~,logname,~] = fileparts(folderPath);
+%     [~,logname,~] = fileparts(pipettePath);
     logname = subFolderInfo(ii).name;
     pathname = subFolderInfo(ii).folder;
     tmpLogName = [logname '.txt'];
@@ -120,8 +124,6 @@ for ii = 1:nFolders
             I = im2double(imread(imds.Files{startingIDX+nImg}));
             if normalizeImages
                 fprintf(' <- normalized')
-%                 I = (I-mean2(I))./std2(I);
-                n=2;
                 Idouble = im2double(I); 
                 avg = mean2(Idouble);
                 sigma = std2(Idouble);
@@ -134,8 +136,7 @@ for ii = 1:nFolders
             width = minDimension;
             height = minDimension;
             pipetteImg(:,:,:,startingIDX+nImg) = imresize(imcrop(I,[xmin ymin width height]),imageSize,'bilinear');
-            pipetteLog(startingIDX+nImg,:) = [str2double(logname) log.img(i) log.x(i)...
-                            log.y(i) log.z(i)];
+            pipetteLog(startingIDX+nImg,:) = [str2double(logname) log.img(i) log.x(i) log.y(i) log.z(i)];
             nImg = nImg + 1;
             fprintf('...\n')
         end
@@ -145,12 +146,12 @@ for ii = 1:nFolders
 end
 
 %% convert to 3 channel if needed
-[~,~,nChannels,~] = size(pipetteImg(:,:,:,1));
-if nChannels<dChannels
-    for i = 1:dChannels
-        pipetteImg(:,:,i,:) = pipetteImg(:,:,1,:);
-    end
-end
+% [~,~,nChannels,~] = size(pipetteImg(:,:,:,1));
+% if nChannels<dChannels
+%     for i = 1:dChannels
+%         pipetteImg(:,:,i,:) = pipetteImg(:,:,1,:);
+%     end
+% end
 
 %% augment the images here
 % optionally mirror the image from left to right (axis of flip is vertical)

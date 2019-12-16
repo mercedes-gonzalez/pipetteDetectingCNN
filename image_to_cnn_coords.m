@@ -1,7 +1,6 @@
 %% labview version
 % Purpose: To determine the coordinates of the pipette tip based on
 % the loaded neural net for one image
-% netPath and inputImage are set by LabVIEW user
 
 
 %% NOTE

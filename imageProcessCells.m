@@ -16,10 +16,12 @@ style = 'blend';
 %% Shuffle background
 for i = 1:5
     [I(:,:,i), ~, ~] = randblock(Cells,blockSize(i));
-    P(:,:,i) = imfuse(Pipette,I(:,:,i),'method',style);
+%     P(:,:,i) = imfuse(Pipette,I(:,:,i),'method',style);
+      P(:,:,i) = imdivide(Pipette,I(:,:,i));
 end
 P(:,:,6) = imfuse(Pipette,Cells,'method',style);
 I(:,:,6) = Cells;
+
 %% plot it
 multi = cat(1,I(:,:,:));
 multiP = cat(1,P(:,:,:));

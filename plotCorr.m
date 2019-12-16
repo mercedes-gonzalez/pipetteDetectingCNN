@@ -1,4 +1,3 @@
-%% Troubleshooting Z Issues
 function plotCorr(data) 
     set(0,'defaultAxesFontSize',14)
 
