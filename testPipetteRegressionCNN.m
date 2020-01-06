@@ -5,12 +5,12 @@
 % guess correctly...
 
 % use the CNN to guess the position <x,y,z> of the pipette
-guess = predict(net,pipetteValidationImg);
+guess = predict(net,totalDS.pipetteValidationImg);
 
 % calculate the <dx,dy,dz> for each image
-dx = (pipetteValidationLog(:,3))-guess(:,1);
-dy = (pipetteValidationLog(:,4))-guess(:,2);
-dz = (pipetteValidationLog(:,5))-guess(:,3);
+dx = (totalDS.pipetteValidationLog(:,3))-guess(:,1);
+dy = (totalDS.pipetteValidationLog(:,4))-guess(:,2);
+dz = (totalDS.pipetteValidationLog(:,5))-guess(:,3);
 
 % Convert from pixels to steps to um
 dx_um = dx*0.1/1.093;
@@ -33,8 +33,8 @@ figure()
 mindim = 1024;
 offset = 244/2;
 subplot(2,2,1)
-I = pipetteValidationImg(:,:,:,dxIdx(end));
-posReal = pipetteValidationLog(dxIdx(end),3:4).*224/mindim+offset;
+I = totalDS.pipetteValidationImg(:,:,:,dxIdx(end));
+posReal = totalDS.pipetteValidationLog(dxIdx(end),3:4).*224/mindim+offset;
 posGuess = guess(dxIdx(end),1:2).*224/mindim+offset;
 pos = [posReal; posGuess];
 Imarker = insertMarker(I,posReal,'Color','green');
@@ -42,13 +42,13 @@ hold on
 Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
 imshow(Imarker2)
 worstX = ['X error: ' num2str(dxMax(end)*0.1/1.093) 'microns ' ...
-    num2str(pipetteValidationLog(dxIdx(end),1)) ' ' ...
-    num2str(pipetteValidationLog(dxIdx(end),2)) '.png'];
+    num2str(totalDS.pipetteValidationLog(dxIdx(end),1)) ' ' ...
+    num2str(totalDS.pipetteValidationLog(dxIdx(end),2)) '.png'];
 title(worstX)
 
 subplot(2,2,2)
-I = pipetteValidationImg(:,:,:,dxIdx(end-1));
-posReal = pipetteValidationLog(dxIdx(end-1),3:4).*224/mindim+offset;
+I = totalDS.pipetteValidationImg(:,:,:,dxIdx(end-1));
+posReal = totalDS.pipetteValidationLog(dxIdx(end-1),3:4).*224/mindim+offset;
 posGuess = guess(dxIdx(end-1),1:2).*224/mindim+offset;
 pos = [posReal; posGuess];
 Imarker = insertMarker(I,posReal,'Color','green');
@@ -56,13 +56,13 @@ hold on
 Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
 imshow(Imarker2)
 worstX = ['X error: ' num2str(dxMax(end-1)*0.1/1.093) 'microns ' ...
-    num2str(pipetteValidationLog(dxIdx(end-1),1)) ' ' ...
-    num2str(pipetteValidationLog(dxIdx(end-1),2)) '.png'];
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-1),1)) ' ' ...
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-1),2)) '.png'];
 title(worstX)
 
 subplot(2,2,3)
-I = pipetteValidationImg(:,:,:,dxIdx(end-2));
-posReal = pipetteValidationLog(dxIdx(end-2),3:4).*224/mindim+offset;
+I = totalDS.pipetteValidationImg(:,:,:,dxIdx(end-2));
+posReal = totalDS.pipetteValidationLog(dxIdx(end-2),3:4).*224/mindim+offset;
 posGuess = guess(dxIdx(end-2),1:2).*224/mindim+offset;
 pos = [posReal; posGuess];
 Imarker = insertMarker(I,posReal,'Color','green');
@@ -70,13 +70,13 @@ hold on
 Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
 imshow(Imarker2)
 worstX = ['X error: ' num2str(dxMax(end-2)*0.1/1.093) 'microns ' ...
-    num2str(pipetteValidationLog(dxIdx(end-2),1)) ' ' ...
-    num2str(pipetteValidationLog(dxIdx(end-2),2)) '.png'];
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-2),1)) ' ' ...
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-2),2)) '.png'];
 title(worstX)
 
 subplot(2,2,4)
-I = pipetteValidationImg(:,:,:,dxIdx(end-3));
-posReal = pipetteValidationLog(dxIdx(end-3),3:4).*224/mindim+122;
+I = totalDS.pipetteValidationImg(:,:,:,dxIdx(end-3));
+posReal = totalDS.pipetteValidationLog(dxIdx(end-3),3:4).*224/mindim+122;
 posGuess = guess(dxIdx(end-3),1:2).*224/mindim+122;
 pos = [posReal; posGuess];
 Imarker = insertMarker(I,posReal,'Color','green');
@@ -84,8 +84,8 @@ hold on
 Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
 imshow(Imarker2)
 worstX = ['X error: ' num2str(dxMax(end-3)*0.1/1.093) 'microns ' ...
-    num2str(pipetteValidationLog(dxIdx(end-3),1)) ' ' ...
-    num2str(pipetteValidationLog(dxIdx(end-3),2)) '.png'];
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-3),1)) ' ' ...
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-3),2)) '.png'];
 title(worstX)
 
 %% show worst Y errors
@@ -93,8 +93,8 @@ figure()
 [dxMax,dxIdx] = sort(abs(dy));
 
 subplot(2,2,1)
-I = pipetteValidationImg(:,:,:,dxIdx(end));
-posReal = pipetteValidationLog(dxIdx(end),3:4).*224/1080+122;
+I = totalDS.pipetteValidationImg(:,:,:,dxIdx(end));
+posReal = totalDS.pipetteValidationLog(dxIdx(end),3:4).*224/1080+122;
 posGuess = guess(dxIdx(end),1:2).*224/1080+122;
 pos = [posReal; posGuess];
 Imarker = insertMarker(I,posReal,'Color','green');
@@ -102,47 +102,47 @@ hold on
 Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
 imshow(Imarker2)
 worstX = ['Y error: ' num2str(dxMax(end)*0.1/1.093) 'microns ' ...
-    num2str(pipetteValidationLog(dxIdx(end),1)) ' ' ...
-    num2str(pipetteValidationLog(dxIdx(end),2)) '.png'];
+    num2str(totalDS.pipetteValidationLog(dxIdx(end),1)) ' ' ...
+    num2str(totalDS.pipetteValidationLog(dxIdx(end),2)) '.png'];
 title(worstX)
 
 subplot(2,2,2)
-I = pipetteValidationImg(:,:,:,dxIdx(end-1));
-posReal = pipetteValidationLog(dxIdx(end-1),3:4).*224/1080+122;
+I = totalDS.pipetteValidationImg(:,:,:,dxIdx(end-1));
+posReal = totalDS.pipetteValidationLog(dxIdx(end-1),3:4).*224/1080+122;
 posGuess = guess(dxIdx(end-1),1:2).*224/1080+122;
 pos = [posReal; posGuess];
 Imarker = insertMarker(I,posReal,'Color','green');
 Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
 imshow(Imarker2)
 worstX = ['Y error: ' num2str(dxMax(end-1)*0.1/1.093) 'microns ' ...
-    num2str(pipetteValidationLog(dxIdx(end-1),1)) ' ' ...
-    num2str(pipetteValidationLog(dxIdx(end-1),2)) '.png'];
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-1),1)) ' ' ...
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-1),2)) '.png'];
 title(worstX)
 
 subplot(2,2,3)
-I = pipetteValidationImg(:,:,:,dxIdx(end-2));
-posReal = pipetteValidationLog(dxIdx(end-2),3:4).*224/1080+122;
+I = totalDS.pipetteValidationImg(:,:,:,dxIdx(end-2));
+posReal = totalDS.pipetteValidationLog(dxIdx(end-2),3:4).*224/1080+122;
 posGuess = guess(dxIdx(end-2),1:2).*224/1080+122;
 pos = [posReal; posGuess];
 Imarker = insertMarker(I,posReal,'Color','green');
 Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
 imshow(Imarker2)
 worstX = ['Y error: ' num2str(dxMax(end-2)*0.1/1.093) 'microns ' ...
-    num2str(pipetteValidationLog(dxIdx(end-2),1)) ' ' ...
-    num2str(pipetteValidationLog(dxIdx(end-2),2)) '.png'];
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-2),1)) ' ' ...
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-2),2)) '.png'];
 title(worstX)
 
 subplot(2,2,4)
-I = pipetteValidationImg(:,:,:,dxIdx(end-3));
-posReal = pipetteValidationLog(dxIdx(end-3),3:4).*224/1080+122;
+I = totalDS.pipetteValidationImg(:,:,:,dxIdx(end-3));
+posReal = totalDS.pipetteValidationLog(dxIdx(end-3),3:4).*224/1080+122;
 posGuess = guess(dxIdx(end-3),1:2).*224/1080+122;
 pos = [posReal; posGuess];
 Imarker = insertMarker(I,posReal,'Color','green');
 Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
 imshow(Imarker2)
 worstX = ['Y error: ' num2str(dxMax(end-3)*0.1/1.093) 'microns ' ...
-    num2str(pipetteValidationLog(dxIdx(end-3),1)) ' ' ...
-    num2str(pipetteValidationLog(dxIdx(end-3),2)) '.png'];
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-3),1)) ' ' ...
+    num2str(totalDS.pipetteValidationLog(dxIdx(end-3),2)) '.png'];
 title(worstX)
 
 %% error histogram

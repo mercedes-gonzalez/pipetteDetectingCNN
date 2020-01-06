@@ -3,11 +3,27 @@
 % electrophysiology. this CNN uses resnet50.
 %
 % Colby Lewallen. August 2018.
-% Updated Mercedes Gonzalez October 2019
-clear all; close all; clc
+% Updated Mercedes Gonzalez December 2019
+% clear all; close all; clc
 
-%% load imagage datastore
-load 'pipetteXYZdata_11-Nov-2019.mat';
+%% access imagage datastores using matfile
+% pipetteDS = load('C:\Users\myip7\Desktop\temporaryCNN\pipetteXYZdata_16-Dec-2019.mat');
+% oldDS = load('C:\Users\myip7\Desktop\temporaryCNN\pipetteXYZdata_11-Nov-2019.mat');
+
+%% Combine datastores
+fprintf('\nConcatenating pipetteValidationImg\n')
+totalDS.pipetteValidationImg = cat(4,pipetteDS.pipetteValidationImg,oldDS.pipetteValidationImg);
+
+fprintf('\nConcatenating pipetteTrainingImg\n')
+totalDS.pipetteTrainingImg = cat(4,pipetteDS.pipetteTrainingImg,oldDS.pipetteTrainingImg);
+
+fprintf('\nConcatenating pipetteValidationLog\n')
+totalDS.pipetteValidationLog = cat(1,pipetteDS.pipetteValidationLog,oldDS.pipetteValidationLog);
+
+fprintf('\nConcatenating pipetteTrainingLog\n')
+totalDS.pipetteTrainingLog = cat(1,pipetteDS.pipetteTrainingLog,oldDS.pipetteTrainingLog);
+
+%% Training stats 
 showTrainingDatadetails = true;
 showCNNlayers = true;
 doTrainingAndEval = true;
@@ -41,11 +57,11 @@ doTrainingAndEval = true;
 % microns) should be approximately uniformly distributed, which works well
 % without needing normalization. In classification problems, the outputs 
 % are class probabilities, which are always normalized.
-X = pipetteTrainingLog(:,3);
-Y = pipetteTrainingLog(:,4);
-Z = pipetteTrainingLog(:,5);
+X = totalDS.pipetteTrainingLog(:,3);
+Y = totalDS.pipetteTrainingLog(:,4);
+Z = totalDS.pipetteTrainingLog(:,5);
 coordsTraining = [X Y Z];
-coordsValidation = pipetteValidationLog(:,3:5);
+coordsValidation = totalDS.pipetteValidationLog(:,3:5);
 
 if showTrainingDatadetails
     figure
@@ -70,7 +86,8 @@ if showTrainingDatadetails
 end
 
 %% load pretrained network
-net = resnet50; % changed to resnet101 
+fprintf('Loading resnet50\n')
+net = resnet50; 
 
 % extract the layer gram from the trained network and plot the layer graph
 lgraph = layerGraph(net);
@@ -93,6 +110,7 @@ inputSize = net.Layers(1).InputSize;
 % the new data set (5, in this example). To learn faster in the new layers 
 % than in the transferred layers, increase the learning rate factors of the
 % fully connected layer.
+fprintf('Replacing final 3 layers\n')
 lgraph = removeLayers(lgraph, {'fc1000','fc1000_softmax','ClassificationLayer_fc1000'});
 
 [~,numClasses] = size(coordsTraining);
@@ -149,11 +167,12 @@ end
 % on the entire training data set. Specify the mini-batch size and 
 % validation data. The software validates the network every 
 % ValidationFrequency iterations during trainig
+fprintf('Setting training options\n')
 options = trainingOptions('sgdm', ...
     'MiniBatchSize',16, ...
     'MaxEpochs',60, ...
     'InitialLearnRate',1e-4, ...% changed from 1e-4
-    'ValidationData',{pipetteValidationImg,coordsValidation}, ...
+    'ValidationData',{totalDS.pipetteValidationImg,coordsValidation}, ...
     'ValidationFrequency',50, ... % changed from 30
     'ValidationPatience',Inf, ...
     'Verbose',false ,...
@@ -163,7 +182,8 @@ options = trainingOptions('sgdm', ...
 %% train network
 if doTrainingAndEval
     tic
-    net = trainNetwork(pipetteTrainingImg,coordsTraining,lgraph,options);
+    fprintf('\nBeginning Training\n')
+    net = trainNetwork(totalDS.pipetteTrainingImg,coordsTraining,lgraph,options);
     save(strcat('regressionNET-',string(date),'.mat'),'net','-v7.3')
     timeToTrain = toc
 end
