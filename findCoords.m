@@ -21,8 +21,8 @@ function guess = findCoords(net)
     if normalizeImg
         n=2; % 2 std above or below mean are max and min
         Idouble = im2double(I);
-        avg = mean2(Idouble)
-        sigma = std2(Idouble) 
+        avg = mean2(Idouble);
+        sigma = std2(Idouble);
         minval = avg-n*sigma; if minval < 0; minval = 0; end
         maxval = avg+n*sigma; if maxval > 1; maxval = 1; end
         In = imadjust(Idouble,[minval maxval],[]);
@@ -39,9 +39,9 @@ function guess = findCoords(net)
             pipetteImg(:,:,i,:) = pipetteImg(:,:,1,:);
         end
     end
-
+    imshow(pipetteImg)
     %% Predict x,y,z coords (in pixels) of pipette tip using neural net
-    guess = predict(net,pipetteImg)
+    guess = predict(net,pipetteImg);
     guess_um = guess*.1/1.093
     xGuess = guess(1,1);
     yGuess = guess(1,2);
@@ -53,9 +53,8 @@ function guess = findCoords(net)
     figure
     hold on
     tip = insertMarker(I,posGuess,'Color','blue','Size',15);
-    tip2 = insertMarker(tip,posActual,'Color','red','Size',15);
-    imshow(tip2)
-    title('Final')
-
-
+%     tip2 = insertMarker(tip,posActual,'Color','red','Size',15);
+%     imshow(tip2)
+    imshow(tip)
+%     title('Final')
 end

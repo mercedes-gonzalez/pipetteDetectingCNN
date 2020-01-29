@@ -4,15 +4,14 @@
 % reltaive to centered and in-focus
 %
 % Colby Lewallen. August 2018
-% Updated Mercedes Gonzalez October 2019
+% Updated Mercedes Gonzalez January 2019
 % clear all; close all; clc
 
 % set the path directory for images on the local machine to be stored
 % in a 4D array
 % folderPath = 'C:\Users\Colby\Dropbox\multibot';  usingPC = true;   % colby home pc
-folderPath =  'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019 NET\multibot-2019'; 
-usingPC = true; % mercedes usb
-% folderPath = '/Users/colbylewallen/Dropbox/multibot';  usingPC = false;   % colby work mac
+folderPath =  'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019 NET\CNN LabVIEW\multibot'; 
+usingPC = true; 
 
 appendToExisting = false;   % add data to existing mat file
 normalizeImages = true;     % average of each image = 0, standard deviation = 1;
@@ -21,12 +20,12 @@ mirrorLR = true;           % mirror images across the vertical axis
 mirrorUD = true;           % mirror images across the horizontal axis
 imageSize = [224 224];      % standard image size for resnet50() is [224 224 3]
 dChannels = 3;  % desired number of channels in the image ex. [xx xx dChannels];
-pTrainingData = 0.96;    % number between 0 and 1
+pTrainingData = 0.98;    % number between 0 and 1
 
 % this .mat filename is referenced in other .m files. be sure you know what
 % you're doing if you change this
 % MATfilename = strcat('pipetteXYZdata_',string(date),'.mat')
-MATfilename = strcat('pipetteXYZdata_25-Oct-2019.mat');
+MATfilename = 'pipetteXYZdata_27-Jan-2020.mat';
 
 %% count subfolders
 % get all folders inside folderPath then count the folders. In addition,
@@ -129,7 +128,16 @@ for ii = 1:nFolders
                 Idouble = im2double(I); 
                 avg = mean2(Idouble);
                 sigma = std2(Idouble);
-                I = imadjust(I,[avg-n*sigma avg+n*sigma],[]);
+                lownum = avg-n*sigma;
+                if lownum < 0 
+                    lownum = 0; 
+                end
+                highnum = avg+n*sigma; 
+                if highnum > 1
+                    highnum = 1;
+                end
+                
+                I = imadjust(Idouble,[lownum highnum],[]);
             end
             [ysize,xsize] = size(I(:,:,1));
             minDimension = min([xsize ysize]);

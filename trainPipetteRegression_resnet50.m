@@ -4,10 +4,10 @@
 %
 % Colby Lewallen. August 2018.
 % Updated Mercedes Gonzalez October 2019
-clear all; close all; clc
+% clear all; close all; clc
 
 %% load imagage datastore
-load 'pipetteXYZdata_11-Nov-2019.mat';
+% load 'pipetteXYZdata_11-Nov-2019.mat';
 showTrainingDatadetails = true;
 showCNNlayers = true;
 doTrainingAndEval = true;
@@ -104,6 +104,12 @@ lgraph = addLayers(lgraph,newLayers);
 % connect the last transferred layer remaining in the network to the new
 % layers. To check that the new layers are connected correctly, plot the
 % new layer graph and zoom in on the last layers of the network.
+
+% % % maxPoolLayer = maxPooling2dLayer(5,'Name','maxPoolLayer','Stride',3);
+% % % lgraph = connectLayers(lgraph,'avg_pool','fc');
+% % % 
+% % % % Use max pooling to reduce noise! pls work
+% % % lgraph = replaceLayer(lgraph,'avg_pool',maxPoolLayer);
 lgraph = connectLayers(lgraph,'avg_pool','fc');
 
 if showCNNlayers

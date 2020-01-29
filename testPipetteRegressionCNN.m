@@ -1,8 +1,7 @@
 % this file is used to test the pipette regression analysis data
 % 
 % Colby Lewallen. August 2018
-% Updated Mercedes Gonzalez October 2019 --> need to figure out plotting
-% guess correctly...
+% Updated Mercedes Gonzalez January 2020
 
 % use the CNN to guess the position <x,y,z> of the pipette
 guess = predict(net,pipetteValidationImg);
@@ -30,16 +29,23 @@ fprintf('Standard Deviation\ndx: %1.2f microns\ndy: %1.2f microns\ndz: %1.2f mic
 %% show worst X errors
 figure()
 [dxMax,dxIdx] = sort(abs(dx));
-mindim = 1024;
-offset = 244/2;
+originalSize = [1024 1280];
+ysize = originalSize(1);
+xsize = originalSize(2);
+minDimension = min(originalSize);
+newsize = 224; 
+
 subplot(2,2,1)
 I = pipetteValidationImg(:,:,:,dxIdx(end));
-posReal = pipetteValidationLog(dxIdx(end),3:4).*224/mindim+offset;
-posGuess = guess(dxIdx(end),1:2).*224/mindim+offset;
+posReal = pipetteValidationLog(dxIdx(end),3:4);
+posGuess = guess(dxIdx(end),1:2);
 pos = [posReal; posGuess];
-Imarker = insertMarker(I,posReal,'Color','green');
+transformedpoint = pos; 
+transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension;
+transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+Imarker = insertMarker(I,transformedpoint(1,:),'Color','green');
 hold on
-Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
+Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color','red');
 imshow(Imarker2)
 worstX = ['X error: ' num2str(dxMax(end)*0.1/1.093) 'microns ' ...
     num2str(pipetteValidationLog(dxIdx(end),1)) ' ' ...
@@ -48,12 +54,15 @@ title(worstX)
 
 subplot(2,2,2)
 I = pipetteValidationImg(:,:,:,dxIdx(end-1));
-posReal = pipetteValidationLog(dxIdx(end-1),3:4).*224/mindim+offset;
-posGuess = guess(dxIdx(end-1),1:2).*224/mindim+offset;
+posReal = pipetteValidationLog(dxIdx(end-1),3:4);
+posGuess = guess(dxIdx(end-1),1:2);
 pos = [posReal; posGuess];
-Imarker = insertMarker(I,posReal,'Color','green');
+transformedpoint = pos; 
+transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+Imarker = insertMarker(I,transformedpoint(1,:),'Color','green');
 hold on
-Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
+Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color','red');
 imshow(Imarker2)
 worstX = ['X error: ' num2str(dxMax(end-1)*0.1/1.093) 'microns ' ...
     num2str(pipetteValidationLog(dxIdx(end-1),1)) ' ' ...
@@ -62,12 +71,15 @@ title(worstX)
 
 subplot(2,2,3)
 I = pipetteValidationImg(:,:,:,dxIdx(end-2));
-posReal = pipetteValidationLog(dxIdx(end-2),3:4).*224/mindim+offset;
-posGuess = guess(dxIdx(end-2),1:2).*224/mindim+offset;
+posReal = pipetteValidationLog(dxIdx(end-2),3:4);
+posGuess = guess(dxIdx(end-2),1:2);
 pos = [posReal; posGuess];
-Imarker = insertMarker(I,posReal,'Color','green');
+transformedpoint = pos; 
+transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+Imarker = insertMarker(I,transformedpoint(1,:),'Color','green');
 hold on
-Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
+Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color','red');
 imshow(Imarker2)
 worstX = ['X error: ' num2str(dxMax(end-2)*0.1/1.093) 'microns ' ...
     num2str(pipetteValidationLog(dxIdx(end-2),1)) ' ' ...
@@ -76,12 +88,15 @@ title(worstX)
 
 subplot(2,2,4)
 I = pipetteValidationImg(:,:,:,dxIdx(end-3));
-posReal = pipetteValidationLog(dxIdx(end-3),3:4).*224/mindim+122;
-posGuess = guess(dxIdx(end-3),1:2).*224/mindim+122;
+posReal = pipetteValidationLog(dxIdx(end-3),3:4);
+posGuess = guess(dxIdx(end-3),1:2);
 pos = [posReal; posGuess];
-Imarker = insertMarker(I,posReal,'Color','green');
+transformedpoint = pos; 
+transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+Imarker = insertMarker(I,transformedpoint(1,:),'Color','green');
 hold on
-Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
+Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color','red');
 imshow(Imarker2)
 worstX = ['X error: ' num2str(dxMax(end-3)*0.1/1.093) 'microns ' ...
     num2str(pipetteValidationLog(dxIdx(end-3),1)) ' ' ...
@@ -94,12 +109,15 @@ figure()
 
 subplot(2,2,1)
 I = pipetteValidationImg(:,:,:,dxIdx(end));
-posReal = pipetteValidationLog(dxIdx(end),3:4).*224/1080+122;
-posGuess = guess(dxIdx(end),1:2).*224/1080+122;
+posReal = pipetteValidationLog(dxIdx(end),3:4);
+posGuess = guess(dxIdx(end),1:2);
 pos = [posReal; posGuess];
-Imarker = insertMarker(I,posReal,'Color','green');
+transformedpoint = pos; 
+transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+Imarker = insertMarker(I,transformedpoint(1,:),'Color','green');
 hold on
-Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
+Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color','red');
 imshow(Imarker2)
 worstX = ['Y error: ' num2str(dxMax(end)*0.1/1.093) 'microns ' ...
     num2str(pipetteValidationLog(dxIdx(end),1)) ' ' ...
@@ -108,11 +126,15 @@ title(worstX)
 
 subplot(2,2,2)
 I = pipetteValidationImg(:,:,:,dxIdx(end-1));
-posReal = pipetteValidationLog(dxIdx(end-1),3:4).*224/1080+122;
-posGuess = guess(dxIdx(end-1),1:2).*224/1080+122;
+posReal = pipetteValidationLog(dxIdx(end-1),3:4);
+posGuess = guess(dxIdx(end-1),1:2);
 pos = [posReal; posGuess];
-Imarker = insertMarker(I,posReal,'Color','green');
-Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
+transformedpoint = pos; 
+transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+Imarker = insertMarker(I,transformedpoint(1,:),'Color','green');
+hold on
+Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color','red');
 imshow(Imarker2)
 worstX = ['Y error: ' num2str(dxMax(end-1)*0.1/1.093) 'microns ' ...
     num2str(pipetteValidationLog(dxIdx(end-1),1)) ' ' ...
@@ -121,11 +143,15 @@ title(worstX)
 
 subplot(2,2,3)
 I = pipetteValidationImg(:,:,:,dxIdx(end-2));
-posReal = pipetteValidationLog(dxIdx(end-2),3:4).*224/1080+122;
-posGuess = guess(dxIdx(end-2),1:2).*224/1080+122;
+posReal = pipetteValidationLog(dxIdx(end-2),3:4);
+posGuess = guess(dxIdx(end-2),1:2);
 pos = [posReal; posGuess];
-Imarker = insertMarker(I,posReal,'Color','green');
-Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
+transformedpoint = pos; 
+transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+Imarker = insertMarker(I,transformedpoint(1,:),'Color','green');
+hold on
+Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color','red');
 imshow(Imarker2)
 worstX = ['Y error: ' num2str(dxMax(end-2)*0.1/1.093) 'microns ' ...
     num2str(pipetteValidationLog(dxIdx(end-2),1)) ' ' ...
@@ -134,11 +160,15 @@ title(worstX)
 
 subplot(2,2,4)
 I = pipetteValidationImg(:,:,:,dxIdx(end-3));
-posReal = pipetteValidationLog(dxIdx(end-3),3:4).*224/1080+122;
-posGuess = guess(dxIdx(end-3),1:2).*224/1080+122;
+posReal = pipetteValidationLog(dxIdx(end-3),3:4);
+posGuess = guess(dxIdx(end-3),1:2);
 pos = [posReal; posGuess];
-Imarker = insertMarker(I,posReal,'Color','green');
-Imarker2 = insertMarker(Imarker,posGuess,'Color','red');
+transformedpoint = pos; 
+transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+Imarker = insertMarker(I,transformedpoint(1,:),'Color','green');
+hold on
+Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color','red');
 imshow(Imarker2)
 worstX = ['Y error: ' num2str(dxMax(end-3)*0.1/1.093) 'microns ' ...
     num2str(pipetteValidationLog(dxIdx(end-3),1)) ' ' ...
