@@ -9,20 +9,20 @@
 
 % set the path directory for images on the local machine to be stored
 % in a 4D array
-folderPath =  'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019 NET\multibot-2019'; 
+folderPath =  'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019 NET\CNN LabVIEW\multibot'; 
 
 usingPC = true;
-appendToExisting = true;   % add data to existing mat file
+appendToExisting = false;   % add data to existing mat file
 normalizeImages = true;
 makeTrainingSet = true;     % split data into training and validation data
-mirrorLR = true;           % mirror images across the vertical axis
-mirrorUD = true;           % mirror images across the horizontal axis
+mirrorLR = false;           % mirror images across the vertical axis
+mirrorUD = false;           % mirror images across the horizontal axis
 imageSize = [224 224];      % standard image size for resnet50() is [224 224 3]
-dChannels = 1;  % desired number of channels in the image ex. [xx xx dChannels];
+dChannels = 3;  % desired number of channels in the image ex. [xx xx dChannels];
 pTrainingData = 0.98;    % fraction of images to be training (not validation)
 
-% MATfilename = strcat('pipetteXYZdata_',string(date),'.mat')
-MATfilename = strcat('pipetteXYZdata_25-Oct-2019.mat');
+MATfilename = strcat('pipetteXYZdata_',string(date),'.mat')
+% MATfilename = strcat('pipetteXYZdata_25-Oct-2019.mat');
 
 %% count subfolders
 % get all folders inside folderPath then count the folders. In addition,
@@ -115,17 +115,17 @@ for ii = 1:nFolders
     
         % now we append the image and data if the file should be appended
         if appendNewFile && exist(absFilePath, 'file')==2
-            fprintf('adding img: %s to the database (idx: %1.1f)',fileName,i)
+            fprintf('Progress: %1.2f',i/length(log.img))
             % add the current image to a 4D array
             I = im2double(imread(imds.Files{startingIDX+nImg}));
             if normalizeImages
-                fprintf(' <- normalized')
-%                 I = (I-mean2(I))./std2(I);
                 n=2;
                 Idouble = im2double(I); 
                 avg = mean2(Idouble);
                 sigma = std2(Idouble);
-                I = imadjust(I,[avg-n*sigma avg+n*sigma],[]);
+                lowVal = avg-n*sigma; if lowVal < 0 lowVal = 0; end
+                highVal = avg+n*sigma; if highVal > 1 highVal = 1; end
+                Iadjusted = imadjust(Idouble,[lowVal highVal],[]);
             end
             [ysize,xsize] = size(I(:,:,1));
             minDimension = min([xsize ysize]);
@@ -133,9 +133,8 @@ for ii = 1:nFolders
             ymin = floor(ysize/2-minDimension/2);
             width = minDimension;
             height = minDimension;
-            pipetteImg(:,:,:,startingIDX+nImg) = imresize(imcrop(I,[xmin ymin width height]),imageSize,'bilinear');
-            pipetteLog(startingIDX+nImg,:) = [str2double(logname) log.img(i) log.x(i)...
-                            log.y(i) log.z(i)];
+            pipetteImg(:,:,:,startingIDX+nImg) = imresize(imcrop(Iadjusted,[xmin ymin width height]),imageSize,'bilinear');
+            pipetteLog(startingIDX+nImg,:) = [str2double(logname) log.img(i) log.x(i) log.y(i) log.z(i)];
             nImg = nImg + 1;
             fprintf('...\n')
         end
@@ -218,7 +217,7 @@ end
    
 %% report and save
 fprintf('\nPROCESSING COMPLETE\n')
-save(MATfilename,'pipetteImg','pipetteLog',...
+save(MATfilename,...
     'pipetteValidationImg','pipetteValidationLog',...
     'pipetteTrainingImg','pipetteTrainingLog',...
     '-v7.3');

@@ -9,8 +9,7 @@ function spatialPlot(data)
     figure
     subplot(2,1,1)
     dotsize = 20;
-    scatter3(data.xCNN,data.yCNN,data.zCNN,dotsize,...
-        data.tictoc,'filled')
+    scatter3(data.xCNN,data.yCNN,data.zCNN,dotsize,data.tictoc,'filled')
 
     %% Format Plot
     xlabel('X [\mu m]')
@@ -40,10 +39,10 @@ function spatialPlot(data)
     xp=r*cos(ang);
     yp=r*sin(ang);
     plot(x+xp,y+yp,'--','Color','k','lineWidth',2);
+    
     %% Plot XZ data
     subplot(2,1,2)
-    scatter3(data.xCNN,data.yCNN,data.zCNN,dotsize,...
-        data.tictoc,'filled')
+    scatter3(data.xCNN,data.yCNN,data.zCNN,dotsize,data.tictoc,'filled')
 
     %% Format Plot
     xlabel('X [\mu m]')

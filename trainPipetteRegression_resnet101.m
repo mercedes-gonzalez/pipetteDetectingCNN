@@ -70,7 +70,7 @@ if showTrainingDatadetails
 end
 
 %% load pretrained network
-net = resnet50; % changed to resnet101 
+net = resnet101; % changed to resnet101 
 
 % extract the layer gram from the trained network and plot the layer graph
 lgraph = layerGraph(net);
@@ -93,11 +93,10 @@ inputSize = net.Layers(1).InputSize;
 % the new data set (5, in this example). To learn faster in the new layers 
 % than in the transferred layers, increase the learning rate factors of the
 % fully connected layer.
-lgraph = removeLayers(lgraph, {'fc1000','fc1000_softmax','ClassificationLayer_fc1000'});
+lgraph = removeLayers(lgraph, {'fc1000','prob','ClassificationLayer_predictions'});
 
 [~,numClasses] = size(coordsTraining);
 newLayers = [
-    
     fullyConnectedLayer(numClasses,'Name','fc','WeightLearnRateFactor',10,'BiasLearnRateFactor',10)
     regressionLayer('Name','Image regression')];
 lgraph = addLayers(lgraph,newLayers);
@@ -111,7 +110,7 @@ lgraph = addLayers(lgraph,newLayers);
 % % % 
 % % % % Use max pooling to reduce noise! pls work
 % % % lgraph = replaceLayer(lgraph,'avg_pool',maxPoolLayer);
-lgraph = connectLayers(lgraph,'avg_pool','fc');
+lgraph = connectLayers(lgraph,'pool5','fc');
 
 if showCNNlayers
     figure('Units','normalized','Position',[0.3 0.3 0.4 0.4]);
