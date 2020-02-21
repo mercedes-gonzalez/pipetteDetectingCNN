@@ -53,6 +53,6 @@ function guess = findCoords(net)
     %% Plot
     figure
     hold on
-    tip = insertMarker(I,posGuess,'Color','blue','Size',15);
+    tip = insertMarker(I,posGuess,'Color','blue','Size',20);
     imshow(tip)
 end

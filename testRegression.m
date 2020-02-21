@@ -1,3 +1,5 @@
+function testRegression(net,pipetteValidationImg,pipetteValidationLog)
+tic
 % this file is used to test the pipette regression analysis data
 % 
 % Colby Lewallen. August 2018
@@ -188,3 +190,5 @@ xlim([-2.5 2.5])
 
 ylabel('dz bin')
 xlabel('microns')
+timeToTest = toc
+end

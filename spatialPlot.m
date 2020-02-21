@@ -20,8 +20,8 @@ function spatialPlot(data)
     maxX = 1;
     minY = -1;
     maxY = 1;
-    xlim([minX maxX])
-    ylim([minY maxY])
+    xlim([minX maxX]*2)
+    ylim([minY maxY]*2)
     c = colorbar
     colormap(jet)
     ylabel(c,'Time [seconds]')
@@ -34,7 +34,7 @@ function spatialPlot(data)
     axis normal
     %% Draw tolerance circle
     x = 0; y = 0; % Center of circle
-    r = .5; % Radius of circle
+    r = 1; % Radius of circle
     ang=0:0.01:2*pi; 
     xp=r*cos(ang);
     yp=r*sin(ang);
