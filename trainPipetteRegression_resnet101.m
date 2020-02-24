@@ -136,11 +136,11 @@ end
 % Use the supporting function createLgraphUsingConnections to reconnect all
 % the layers in the original order. The new layer graph contains the same
 % layers, but with the learning rates of the earlier layers set to zero.
-% layers = lgraph.Layers;
-% connections = lgraph.Connections;
-% 
-% layers(1:110) = freezeWeights(layers(1:110));
-% lgraph = createLgraphUsingConnections(layers,connections);
+layers = lgraph.Layers;
+connections = lgraph.Connections;
+
+layers(1:110) = freezeWeights(layers(1:110));
+lgraph = createLgraphUsingConnections(layers,connections);
 
 %% set training options
 % Specify the training options. For transfer learning, keep the features
