@@ -1,13 +1,13 @@
 %% Train Image Classifier
 % This script is used to train an image classifier for in vitro
-% electrophysiology. this CNN uses resnet50.
+% electrophysiology. this CNN uses resnet101
 %
 % Colby Lewallen. August 2018.
-% Updated Mercedes Gonzalez October 2019
+% Updated Mercedes Gonzalez February 2020! 
 % clear all; close all; clc
 
 %% load imagage datastore
-% load 'pipetteXYZdata_11-Nov-2019.mat';
+load 'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\february\pipetteXYZdata_11-Feb-2020.mat';
 showTrainingDatadetails = true;
 showCNNlayers = true;
 doTrainingAndEval = true;
@@ -136,11 +136,11 @@ end
 % Use the supporting function createLgraphUsingConnections to reconnect all
 % the layers in the original order. The new layer graph contains the same
 % layers, but with the learning rates of the earlier layers set to zero.
-layers = lgraph.Layers;
-connections = lgraph.Connections;
-
-layers(1:110) = freezeWeights(layers(1:110));
-lgraph = createLgraphUsingConnections(layers,connections);
+% layers = lgraph.Layers;
+% connections = lgraph.Connections;
+% 
+% layers(1:110) = freezeWeights(layers(1:110));
+% lgraph = createLgraphUsingConnections(layers,connections);
 
 %% set training options
 % Specify the training options. For transfer learning, keep the features
@@ -155,15 +155,17 @@ lgraph = createLgraphUsingConnections(layers,connections);
 % on the entire training data set. Specify the mini-batch size and 
 % validation data. The software validates the network every 
 % ValidationFrequency iterations during trainig
-options = trainingOptions('sgdm', ...
-    'MiniBatchSize',16, ...
-    'MaxEpochs',60, ...
+options = trainingOptions('adam',...
+    'SquaredGradientDecayFactor', .99,...
+    'MiniBatchSize',16, ... %subset of training data used for each epoch
+    'MaxEpochs',60, ... % total times to go through all training data
     'InitialLearnRate',1e-4, ...% changed from 1e-4
     'ValidationData',{pipetteValidationImg,coordsValidation}, ...
     'ValidationFrequency',50, ... % changed from 30
-    'ValidationPatience',Inf, ...
-    'Verbose',false ,...
-    'Plots','training-progress',...
+    'ValidationPatience',20, ... % stop training if asymptotic at 20 times 
+    'ExecutionEnvironment','parallel',...
+    'Verbose',false ,...% supress output to command window
+    'Plots','training-progress',... % show plot during training
     'Shuffle','every-epoch'); % don't throw away same data each time
 
 %% train network
