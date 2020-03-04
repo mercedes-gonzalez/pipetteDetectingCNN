@@ -1,28 +1,27 @@
-%% create 4D array and labels for CNN training (PIPETTE)
-% this script is used to create/update a .mat file that is used for
-% training a regression-based CNN to detect the location of a pipette
-% reltaive to centered and in-focus
-%
-% Colby Lewallen. August 2018
-% Updated Mercedes Gonzalez December 2019
-% clear all; close all; clc
+%% Create a directory of preprocessed images for neural net training
+%{ 
+This script will read from folderPath and its subfolders, preprocess
+based on settings input by user, and save the processed images in a 
+separate folder so that training can use a table and reduce required RAM
+for training. It will also save the resulting table of shuffled images
+for training and validation as a mat file to be easily loaded later on.
 
-% set the path directory for images on the local machine to be stored
-% in a 4D array
-folderPath =  'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019 NET\CNN LabVIEW\multibot'; 
+Mercedes Gonzalez. March 2020
+Version control: https://github.gatech.edu/mgonzalez91/pipetteDetectingCNN
 
-usingPC = true;
-appendToExisting = false;   % add data to existing mat file
-normalizeImages = true;
+%}
+%% Settings for preprocessing
+folderPath =  'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\CNN LabVIEW\multibot'; 
+append_to_existing = false;   % add data to existing mat file
+normalizeImages = true;     % average of each image = 0, standard deviation = 1;
 makeTrainingSet = true;     % split data into training and validation data
-mirrorLR = false;           % mirror images across the vertical axis
-mirrorUD = false;           % mirror images across the horizontal axis
-imageSize = [224 224];      % standard image size for resnet50() is [224 224 3]
-dChannels = 3;  % desired number of channels in the image ex. [xx xx dChannels];
-pTrainingData = 0.98;    % fraction of images to be training (not validation)
+mirrorLR = true;           % mirror images across the vertical axis
+mirrorUD = true;           % mirror images across the horizontal axis
+imageSize = [331 331];      % standard image size for nasnetlarge() is [331 331 3]
+% dChannels = 1;  % desired number of channels in the image ex. [xx xx dChannels];
+pTrainingData = 0.98;    % number between 0 and 1
 
-MATfilename = strcat('pipetteXYZdata_',string(date),'.mat')
-% MATfilename = strcat('pipetteXYZdata_25-Oct-2019.mat');
+MATfilename = strcat('NASNET-pipetteXYZdata_',string(date),'.mat')
 
 %% count subfolders
 % get all folders inside folderPath then count the folders. In addition,
@@ -35,7 +34,7 @@ subFolderInfo = S(~ismember({S.name},...
 
 %% create image datastore
 % load any old training data and add the folder to the search directory 
-if exist(MATfilename,'file')>0 && appendToExisting == true
+if exist(MATfilename)>0 && append_to_existing == true
     fprintf('loading old data...\n')
     load(MATfilename)
     % get the length of the current log for use later
@@ -56,28 +55,28 @@ imds = imageDatastore(folderPath,...
     'FileExtensions',fileExt,...
     'Includesubfolders',true);
 
-%% init the pipetteImg and pipetteLog arrays
+% init the pipetteImg and pipetteLog arrays
 [~,~,totalChannels] = size(imread(imds.Files{1}));
 arraySize = [imageSize totalChannels 1];
 pipetteImg = zeros(arraySize);
 pipetteLog = zeros(1,5);
 
-%% create image labels
+% create image labels
 % read the name of the folder. use this to find the name of the log file.
-for ii = 1:nFolders
+for ii = 1:nFolders-1
 %     [~,logname,~] = fileparts(folderPath);
     logname = subFolderInfo(ii).name;
     pathname = subFolderInfo(ii).folder;
     tmpLogName = [logname '.txt'];
     fprintf('reading from %s ',tmpLogName)
     if usingPC
-        fprintf('using PC file structure...\n')
+        fprintf('using PC file structre...\n')
     else
         fprintf('using mac file structure...\n')
     end
     log = tdfread(tmpLogName);
 
-    % create the xyz labels for every image that is still in the
+    % now we need to create the xyz labels for every image that is still in the
     % subfolder using the log file inside the fullRoot folder
     nImg = 1;
     for i = 1:length(log.img)
@@ -88,7 +87,7 @@ for ii = 1:nFolders
         else
             absFilePath = [pathname '/' logname '/' fileName '.png'];
         end
-    
+
         % now we need to check if the file has already been stored in the array
         % database.
         if loadedPreviousData
@@ -112,20 +111,29 @@ for ii = 1:nFolders
             % add new variable and image
             appendNewFile = true;
         end
-    
+
         % now we append the image and data if the file should be appended
         if appendNewFile && exist(absFilePath, 'file')==2
-            fprintf('Progress: %1.2f',i/length(log.img))
+            fprintf('adding img: %s to the database (idx: %1.1f)',fileName,i)
             % add the current image to a 4D array
             I = im2double(imread(imds.Files{startingIDX+nImg}));
             if normalizeImages
+                fprintf(' <- normalized')
+%                 I = (I-mean2(I))./std2(I);
                 n=2;
                 Idouble = im2double(I); 
                 avg = mean2(Idouble);
                 sigma = std2(Idouble);
-                lowVal = avg-n*sigma; if lowVal < 0 lowVal = 0; end
-                highVal = avg+n*sigma; if highVal > 1 highVal = 1; end
-                Iadjusted = imadjust(Idouble,[lowVal highVal],[]);
+                lownum = avg-n*sigma;
+                if lownum < 0 
+                    lownum = 0; 
+                end
+                highnum = avg+n*sigma; 
+                if highnum > 1
+                    highnum = 1;
+                end
+
+                I = imadjust(Idouble,[lownum highnum],[]);
             end
             [ysize,xsize] = size(I(:,:,1));
             minDimension = min([xsize ysize]);
@@ -133,8 +141,9 @@ for ii = 1:nFolders
             ymin = floor(ysize/2-minDimension/2);
             width = minDimension;
             height = minDimension;
-            pipetteImg(:,:,:,startingIDX+nImg) = imresize(imcrop(Iadjusted,[xmin ymin width height]),imageSize,'bilinear');
-            pipetteLog(startingIDX+nImg,:) = [str2double(logname) log.img(i) log.x(i) log.y(i) log.z(i)];
+            pipetteImg(:,:,:,startingIDX+nImg) = imresize(imcrop(I,[xmin ymin width height]),imageSize,'bilinear');
+            pipetteLog(startingIDX+nImg,:) = [str2double(logname) log.img(i) log.x(i)...
+                            log.y(i) log.z(i)];
             nImg = nImg + 1;
             fprintf('...\n')
         end
@@ -143,15 +152,15 @@ for ii = 1:nFolders
     startingIDX = length(pipetteLog); 
 end
 
-%% convert to 3 channel if needed
-[~,~,nChannels,~] = size(pipetteImg(:,:,:,1));
-if nChannels<dChannels
-    for i = 1:dChannels
-        pipetteImg(:,:,i,:) = pipetteImg(:,:,1,:);
-    end
-end
+%     % convert to 3 channel if needed
+%     [~,~,nChannels,~] = size(pipetteImg(:,:,:,1));
+%     if nChannels<dChannels
+%         for i = 1:dChannels
+%             pipetteImg(:,:,i,:) = pipetteImg(:,:,1,:);
+%         end
+%     end
 
-%% augment the images here
+% augment the images here
 % optionally mirror the image from left to right (axis of flip is vertical)
 if mirrorLR
     fprintf('flipping left-to-right...\n')
@@ -159,7 +168,7 @@ if mirrorLR
     pipetteImgLR = fliplr(pipetteImg);  % flip the image
     pipetteLogLR = pipetteLog;          % double the log
     pipetteLogLR(:,xcol) = -pipetteLogLR(:,xcol);   % invert the x axis
-    
+
     % now append these images to the end of the current array and log
     pipetteImg = cat(4,pipetteImg,pipetteImgLR);
     pipetteLog = cat(1,pipetteLog,pipetteLogLR);
@@ -172,20 +181,20 @@ if mirrorUD
     pipetteImgUD = flipud(pipetteImg);  % flip the image
     pipetteLogUD = pipetteLog;          % double the log
     pipetteLogUD(:,ycol) = -pipetteLogUD(:,ycol);   % invert the y axis
-    
+
     % now append these images to the end of the current array and log
     pipetteImg = cat(4,pipetteImg,pipetteImgUD);
     pipetteLog = cat(1,pipetteLog,pipetteLogUD);
 end
 
-%% if the user wants to make a training and validation set
+% if the user wants to make a training and validation set
 if makeTrainingSet
     % create an array of random integers that will be used to select files
     % from the log and image arrays to be placed in the 
-    
+
     % count the number of images in the total log
     nImgs = length(pipetteLog);
-    
+
     % determine how many files should be in the validation array
     nValidationData = ceil((1-pTrainingData)*nImgs);
     fprintf('making training (n = %1.0f) and validation (n = %1.0f) images',...
@@ -197,7 +206,7 @@ if makeTrainingSet
     trainingIDX(validationIDX) = [];
     % shuffle the trainingIDX array too
     trainingIDX = trainingIDX(randperm(length(trainingIDX)));
-    
+
     % store all validation images to a validation file and delete the
     % values from the training set.
     pipetteValidationImg = pipetteImg(:,:,:,validationIDX);
@@ -214,10 +223,18 @@ else
     pipetteValidationImg = [];
     pipetteValidationLog = [];
 end
-   
-%% report and save
+
+% report and save
 fprintf('\nPROCESSING COMPLETE\n')
-save(MATfilename,...
-    'pipetteValidationImg','pipetteValidationLog',...
+save(MATfilename,'pipetteValidationImg','pipetteValidationLog',...
     'pipetteTrainingImg','pipetteTrainingLog',...
     '-v7.3');
+[height,width,num_images] = size(pipetteImg);
+
+if saveExternally == true
+    for img_idx = 1:num_images
+        
+    end
+end
+    
+
