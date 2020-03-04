@@ -1,6 +1,6 @@
-function dataOut = customPreprocess(dataIn)
+function dataOut = customPreprocess(dataIn,image_size)
     I = dataIn;
-    [ysize,xsize] = size(I(:,:,1));
+    [ysize,xsize] = size(I);
     minDimension = min([xsize ysize]);
 
     xmin = floor(xsize/2-minDimension/2);
@@ -8,12 +8,12 @@ function dataOut = customPreprocess(dataIn)
     width = minDimension;
     height = minDimension;
     
-    n=3; % 2 std above or below mean are max and min
+    n=2; % 2 std above or below mean are max and min
     Idouble = im2double(I);
     avg = mean2(Idouble);
     sigma = std2(Idouble);
-    minval = avg-n*sigma; if minval < 0; minval = 0; end
-    maxval = avg+n*sigma; if maxval > 1; maxval = 1; end
-    Iadjusted = imadjust(Idouble,[minval maxval],[]);
-    dataOut = imresize(imcrop(Iadjusted,[xmin ymin width height]),[244 244],'bilinear');
+    min_val = avg-n*sigma; if min_val < 0; min_val = 0; end
+    max_val = avg+n*sigma; if max_val > 1; max_val = 1; end
+    Iadjusted = imadjust(Idouble,[min_val max_val],[]);
+    dataOut = imresize(imcrop(Iadjusted,[xmin ymin width height]),image_size,'bilinear');
 end
