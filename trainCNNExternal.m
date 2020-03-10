@@ -2,19 +2,20 @@
 % Script train for regression
 % Adapted from Colby Lewallen 2017
 % Mercedes Gonzalez March 2020
-% clear all; close all; 
+clear all; close all; 
 clc
 
 %% load imagage datastore
-fprintf('Loading datastores..\n')
+fprintf('Loading datastores...\n')
 
 % lab rig
-% load('C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\Training and Validation Data\04-Mar-2020-data\pipetteXYZ-table-04-Mar-2020.mat')
+load('C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\Training and Validation Data\09-Mar-2020-data\pipetteXYZ-table-09-Mar-2020.mat')
 
-
-showTrainingDatadetails = false;
-showCNNlayers = false;
-doTrainingAndEval = true;
+SHOW_TRAIN_DETAIL = false;
+SHOW_LAYERS = false;
+TRAIN_AND_EVAL = true;
+USE_RESNET101 = true; % false is NASNETLARGE
+CUSTOM_TRAIN = false; % dynamic learning rate...
 
 %% check data normalization
 X = train_data.xyz(:,1);
@@ -23,7 +24,7 @@ Z = train_data.xyz(:,3);
 coordsTraining = [X Y Z];
 coordsValidation = [ val_data.xyz(:,1); val_data.xyz(:,2); val_data.xyz(:,3) ] ;
 
-if showTrainingDatadetails
+if SHOW_TRAIN_DETAIL
     fprintf('Checking data normalization...\n')
 
     figure
@@ -47,70 +48,97 @@ if showTrainingDatadetails
     xlabel('pixels')
 end
 
-%% load pretrained network
+%% load pretrained network   
 fprintf('Loading CNN...\n')
-net = nasnetlarge;
 
-% extract the layer gram from the trained network and plot the layer graph
+if USE_RESNET101
+    net = resnet101;
+    fprintf('Using RESNET101\n')
+else
+    net = nasnetlarge;
+    fprintf('Using NASNETLARGE\n')
+end
+
+% extract the layer gram from the trained network and plot the layer graph 
 lgraph = layerGraph(net);
-if showCNNlayers
+if SHOW_LAYERS
     figure('Units','normalized','Position',[0.1 0.1 0.8 0.8]);
     plot(lgraph)
 end
-
 % get the image input size
 inputSize = net.Layers(1).InputSize;
 
-%% replace final three layers
+%% replace final three layers    
 fprintf('Replacing layers...\n')
-lgraph = removeLayers(lgraph, {'predictions','predictions_softmax','ClassificationLayer_predictions'});
+if USE_RESNET101
+    lgraph = removeLayers(lgraph, {'fc1000','prob','ClassificationLayer_predictions'});
 
-[~,numClasses] = size(coordsTraining);
-newLayers = [
-    fullyConnectedLayer(numClasses,'Name','fc','WeightLearnRateFactor',10,'BiasLearnRateFactor',10)
-    regressionLayer('Name','Image regression')];
-lgraph = addLayers(lgraph,newLayers);
+    [~,numClasses] = size(coordsTraining);
+    newLayers = [
+        fullyConnectedLayer(numClasses,'Name','fc','WeightLearnRateFactor',10,'BiasLearnRateFactor',10)
+        regressionLayer('Name','Image regression')];
+    lgraph = addLayers(lgraph,newLayers);
+    lgraph = connectLayers(lgraph,'pool5','fc');
+else
+    lgraph = removeLayers(lgraph, {'predictions','predictions_softmax','ClassificationLayer_predictions'});
 
-% connect the last transferred layer remaining in the network to the new
-% layers. To check that the new layers are connected correctly, plot the
-% new layer graph and zoom in on the last layers of the network.
-lgraph = connectLayers(lgraph,'global_average_pooling2d_2','fc');
+    [~,numClasses] = size(coordsTraining);
+    newLayers = [
+        fullyConnectedLayer(numClasses,'Name','fc','WeightLearnRateFactor',10,'BiasLearnRateFactor',10)
+        regressionLayer('Name','Image regression')];
+    lgraph = addLayers(lgraph,newLayers);
+    lgraph = connectLayers(lgraph,'global_average_pooling2d_2','fc');
+end
 
-if showCNNlayers
+if SHOW_LAYERS
     figure('Units','normalized','Position',[0.3 0.3 0.4 0.4]);
     plot(lgraph)
     ylim([0,10])
 end
 %% set training options
 fprintf('Setting options...\n')
-gpuDevice(1)
-options = trainingOptions('sgdm',...
-    'MiniBatchSize',8, ... %subset of training data used for each epoch
-    'MaxEpochs',60, ... % total times to go through all training data
-    'InitialLearnRate',1e-4, ...% changed from 1e-4
-    'ValidationData',val_imds, ... % image datastore with validation data
-    'ValidationFrequency',50, ... % changed from 30
-    'ValidationPatience',20, ... % stop training if asymptotic at 20 times
-    'ExecutionEnvironment','gpu',... % set as gpuDevice(1) should have 32 GB mem
-    'Verbose',false,...% supress output to command window
-    'Plots','training-progress',... % show plot during training
-    'Shuffle','every-epoch'); % don't throw away same data each time
+gpuDevice(1);
 
+if CUSTOM_TRAIN
+    dlnet = dlnetwork(lgraph);
+else
+    options = trainingOptions('rmsprop',...
+        'MiniBatchSize',16, ... %subset of training data used for each epoch
+        'MaxEpochs',60, ... % total times to go through all training data
+        'InitialLearnRate',1e-4, ...% changed from 1e-4
+        'LearnRateSchedule','piecewise',...
+        'LearnRateDropFactor',.1,...
+        'LearnRateDropPeriod',5,...
+        'ValidationData',val_imds, ... % image datastore with validation data
+        'ValidationFrequency',50, ... % changed from 30
+        'ValidationPatience',Inf, ... % stop training if asymptotic at 20 epochs
+        'ExecutionEnvironment','gpu',... 
+        'Verbose',true,...% supress output to command window
+        'VerboseFrequency',50,...% number of iterations between printing to command window
+        'Plots','training-progress',... % show plot during training
+        'Shuffle','every-epoch'); % don't throw away same data each time
+end
+
+
+        
 %% train network
-if doTrainingAndEval
+diary on 
+
+if TRAIN_AND_EVAL
     fprintf('Beginning Training...\n')
     
     tic
     net = trainNetwork(train_imds,lgraph,options);
     timeToTrain = toc;
     
-    fprintf('Time to train = %1.2f hours',timeToTrain/60/60);
+    fprintf('Time to train = %1.2f hours\n',timeToTrain/60/60);
     
     fprintf('Saving...\n')
     tic
     save(strcat('regressionNET-',string(date),'.mat'),'net','-v7.3')
     timeToSave = toc;
     
-    fprintf('Time to save = %1.2f mins',timeToSave/60);
+    fprintf('Time to save = %1.2f mins\n\n',timeToSave/60);
     
 end
+diary off

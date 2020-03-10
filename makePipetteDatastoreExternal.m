@@ -16,14 +16,13 @@ clear all; clc;
 tic
 %% Settings for preprocessing
 NORMALIZE = true;     % average of each image = 0, standard deviation = 1;
-MIRROR_LR = true;           % mirror images across the vertical axis
-MIRROR_UD = true;           % mirror images across the horizontal axis
-MIRROR_LRUD = true;         % do both LR and UD mirroring
-IMG_SIZE = [331 331];      % standard image size for nasnetlarge() is [331 331 3]
-PERC_TRAIN = 0.5;    % number between 0 and 1
+MIRROR_LR = false;           % mirror images across the vertical axis
+MIRROR_UD = false;           % mirror images across the horizontal axis
+MIRROR_LRUD = false;         % do both LR and UD mirroring
+IMG_SIZE = [224 224 ];      % standard image size for nasnetlarge() is [331 331 3]
+PERC_VAL = 0.98;    % number between 0 and 1
 letter = { 'a' , 'b', 'c', 'd', 'e', 'f', 'g','h','i','j','k','l','m','n','o','p','q'}; % to be used for folder identification since some files can have the same name across days
 LAB_RIG = true; % set true if using lab rig for path definition
-% Create folder for the day and subfolders for validation and training
 
 if LAB_RIG
     RAW_ROOT_PATH = 'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\CNN LabVIEW\multibot\';
@@ -33,6 +32,7 @@ else % on mercedes laptop
     NEW_ROOT = "C:\Users\mgonzalez91\Dropbox (GaTech)\Research\Pipette Detection\Pipette and cell finding\2019-2020 NET\Training and Validation Data\";
 end
 
+% Create folder for the day and subfolders for validation and training
 today_folder = strcat(string(date),'-data');
 today_path = strcat(NEW_ROOT,today_folder);
 
@@ -85,7 +85,6 @@ for subfolder_idx = 1:n_folders
             I = customPreprocess(imread(abs_filepath),IMG_SIZE);
             
 %             if NORMALIZE
-% %                 fprintf(' <- normalized')
 %                 I = customPreprocess(I,IMG_SIZE); % normalize and crop for net
                 img_name = strcat(letter{subfolder_idx},'-',filename,'.png');
                 temp_path = fullfile(today_path,img_name);
@@ -96,7 +95,6 @@ for subfolder_idx = 1:n_folders
 %             end
             
             if MIRROR_LR
-%                 fprintf('...flipping left-to-right\n')
                 I_lr = fliplr(I);  % flip the image
                 lr_filename = strcat(letter{subfolder_idx},'-',filename,'-LR.png');
                 temp_path = fullfile(today_path,lr_filename);
@@ -107,7 +105,6 @@ for subfolder_idx = 1:n_folders
             end
             
             if MIRROR_UD
-%                 fprintf('...flipping up-down\n')
                 I_ud = flipud(I);  % flip the image
                 ud_filename = strcat(letter{subfolder_idx},'-',filename,'-UD.png');
                 temp_path = fullfile(today_path,ud_filename);
@@ -137,7 +134,7 @@ end
 %% Make training and validation tables
     % Randomly assign some of the images to be validation and save info
     n_images = length(info);
-    n_valid = round(PERC_TRAIN*n_images);
+    n_valid = round(PERC_VAL*n_images);
     n_train = n_images - n_valid;
     ordered = linspace(1,n_images,n_images);
     random = ordered(randperm(n_images));
@@ -170,6 +167,6 @@ end
     % report and save as table
     fprintf('\nPROCESSING COMPLETE\n')
     fullmatfilename = fullfile(today_path,MATfilename);
-    save(fullmatfilename,'val_data','train_data','val_imds','train_imds') 
+    save(fullmatfilename,'val_data','train_data','val_imds','train_imds','info') 
 
     time_to_prepare = toc
