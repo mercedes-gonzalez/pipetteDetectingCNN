@@ -2,14 +2,14 @@
 % Script train for regression
 % Adapted from Colby Lewallen 2017
 % Mercedes Gonzalez March 2020
-clear all; close all; 
+% clear all; close all; 
 clc
 
 %% load imagage datastore
 fprintf('Loading datastores...\n')
 
 % lab rig
-load('C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\Training and Validation Data\09-Mar-2020-data\pipetteXYZ-table-09-Mar-2020.mat')
+% load('C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\Training and Validation Data\11-Mar-2020-data\pipetteXYZ-table-11-Mar-2020.mat')
 
 SHOW_TRAIN_DETAIL = false;
 SHOW_LAYERS = false;
@@ -104,17 +104,17 @@ if CUSTOM_TRAIN
 else
     options = trainingOptions('rmsprop',...
         'MiniBatchSize',16, ... %subset of training data used for each epoch
-        'MaxEpochs',60, ... % total times to go through all training data
+        'MaxEpochs',50, ... % total times to go through all training data
         'InitialLearnRate',1e-4, ...% changed from 1e-4
         'LearnRateSchedule','piecewise',...
-        'LearnRateDropFactor',.1,...
-        'LearnRateDropPeriod',5,...
+        'LearnRateDropFactor',.09,...
+        'LearnRateDropPeriod',10,...
         'ValidationData',val_imds, ... % image datastore with validation data
         'ValidationFrequency',50, ... % changed from 30
         'ValidationPatience',Inf, ... % stop training if asymptotic at 20 epochs
         'ExecutionEnvironment','gpu',... 
         'Verbose',true,...% supress output to command window
-        'VerboseFrequency',50,...% number of iterations between printing to command window
+        'VerboseFrequency',100,...% number of iterations between printing to command window
         'Plots','training-progress',... % show plot during training
         'Shuffle','every-epoch'); % don't throw away same data each time
 end

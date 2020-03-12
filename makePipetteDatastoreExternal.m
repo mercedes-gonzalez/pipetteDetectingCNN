@@ -16,11 +16,11 @@ clear all; clc;
 tic
 %% Settings for preprocessing
 NORMALIZE = true;     % average of each image = 0, standard deviation = 1;
-MIRROR_LR = false;           % mirror images across the vertical axis
-MIRROR_UD = false;           % mirror images across the horizontal axis
-MIRROR_LRUD = false;         % do both LR and UD mirroring
+MIRROR_LR = true;           % mirror images across the vertical axis
+MIRROR_UD = true;           % mirror images across the horizontal axis
+MIRROR_LRUD = true;         % do both LR and UD mirroring
 IMG_SIZE = [224 224 ];      % standard image size for nasnetlarge() is [331 331 3]
-PERC_VAL = 0.98;    % number between 0 and 1
+PERC_VAL = 0.03;    % number between 0 and 1
 letter = { 'a' , 'b', 'c', 'd', 'e', 'f', 'g','h','i','j','k','l','m','n','o','p','q'}; % to be used for folder identification since some files can have the same name across days
 LAB_RIG = true; % set true if using lab rig for path definition
 
@@ -63,7 +63,7 @@ raw_imds = imageDatastore(RAW_ROOT_PATH,...
     'FileExtensions',file_ext,...
     'Includesubfolders',true);
 
-% create image labels
+%% create image labels
 % read the name of the folder. use this to find the name of the log file.
 
 for subfolder_idx = 1:n_folders
@@ -168,5 +168,6 @@ end
     fprintf('\nPROCESSING COMPLETE\n')
     fullmatfilename = fullfile(today_path,MATfilename);
     save(fullmatfilename,'val_data','train_data','val_imds','train_imds','info') 
+    fprintf('\nDatastores saved. Fin.\n')
 
     time_to_prepare = toc
