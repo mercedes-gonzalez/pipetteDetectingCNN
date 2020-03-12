@@ -23,7 +23,7 @@ IMG_SIZE = [224 224 ];      % standard image size for nasnetlarge() is [331 331 
 PERC_VAL = 0.03;    % number between 0 and 1
 letter = { 'a' , 'b', 'c', 'd', 'e', 'f', 'g','h','i','j','k','l','m','n','o','p','q'}; % to be used for folder identification since some files can have the same name across days
 LAB_RIG = true; % set true if using lab rig for path definition
-
+SLICEVAL = true;
 if LAB_RIG
     RAW_ROOT_PATH = 'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\CNN LabVIEW\multibot\';
     NEW_ROOT = 'C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\Training and Validation Data\';
@@ -130,41 +130,56 @@ for subfolder_idx = 1:n_folders
     
 end
 
-
+n_images = length(info);
+n_valid = round(n_images*PERC_VAL);
+n_train = n_images-n_valid;
 %% Make training and validation tables
-    % Randomly assign some of the images to be validation and save info
-    n_images = length(info);
-    n_valid = round(PERC_VAL*n_images);
-    n_train = n_images - n_valid;
+if SLICEVAL % validation images are slice only. 
+    % Assign slice only images to be validation. Randomize. 
+    ordered_train = linspace(1,n_train,n_train);
+    random_train = ordered_train(randperm(n_train));
+    train_only = random_train(1:n_train)';
+    
+    ordered_val = linspace(n_train+1,n_images,n_valid);
+    random_val = ordered_val(randperm(n_valid));
+    val_only = random_val(1:n_valid)';
+else % all random everything     
     ordered = linspace(1,n_images,n_images);
     random = ordered(randperm(n_images));
     val_only = random(1:n_valid)';
     train_only = random(n_valid+1:end)';
+end
+
+% create structs to easily transform to table
+for v = 1:n_valid
+    val(v).file = info(val_only(v)).filepath;
+    val(v).x = info(val_only(v)).xyz(1);
+    val(v).y = info(val_only(v)).xyz(2);
+    val(v).z = info(val_only(v)).xyz(3);
+
+end
+for t = 1:n_train
+    train(t).file = info(train_only(t)).filepath;
+    train(t).x = info(train_only(t)).xyz(1);
+    train(t).y = info(train_only(t)).xyz(2);
+    train(t).z = info(train_only(t)).xyz(3);
+end
+
+% create tables
+val_data = struct2table(val);
+train_data = struct2table(train);
+
+% create augmented datastore from table
+val_imds = augmentedImageDatastore(IMG_SIZE,...
+    val_data,...
+    'OutputSizeMode','centercrop',...
+    'ColorPreprocessing','gray2rgb');
+train_imds = augmentedImageDatastore(IMG_SIZE,...
+    train_data,...
+    'OutputSizeMode','centercrop',...
+    'ColorPreprocessing','gray2rgb');
     
-    % create structs to easily transform to table
-    for i = 1:n_valid
-        val(i).file = info(val_only(i)).filepath;
-        val(i).xyz = info(val_only(i)).xyz;
-    end
-
-    for i = 1:n_train
-        train(i).file = info(train_only(i)).filepath;
-        train(i).xyz = info(train_only(i)).xyz;
-    end
-
-    % create tables
-    val_data = struct2table(val);
-    train_data = struct2table(train);
-
-    % create augmented datastore from table
-    val_imds = augmentedImageDatastore(IMG_SIZE,...
-        val_data,'xyz',...
-        'ColorPreprocessing','gray2rgb');
-    train_imds = augmentedImageDatastore(IMG_SIZE,...
-        train_data,'xyz',...
-        'ColorPreprocessing','gray2rgb');
-    
-    % report and save as table
+    %% report and save as table
     fprintf('\nPROCESSING COMPLETE\n')
     fullmatfilename = fullfile(today_path,MATfilename);
     save(fullmatfilename,'val_data','train_data','val_imds','train_imds','info') 

@@ -9,6 +9,7 @@ n = 9; % size of marker
 c1 = 'cyan'; % Real position
 c2 = 'red'; % Guess
 SHOW_ERRORS = true; % supress plotting errors
+newsize = 224; 
 
 % use the CNN to guess the position <x,y,z> of the pipette
 guess = predict(net,val_imds);
@@ -41,7 +42,6 @@ if SHOW_ERRORS
     ysize = originalSize(1);
     xsize = originalSize(2);
     minDimension = min(originalSize);
-    newsize = 224; 
 
     subplot(2,2,1)
     I = imread(val_data.file(dxIdx(end)));
@@ -55,7 +55,7 @@ if SHOW_ERRORS
     hold on
     Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
     imshow(Imarker2)
-    worstX = ['X error: ' num2str(dxMax(end)*0.1/1.093) 'microns '];
+    worstX = ['X error: ' num2str(round(dxMax(end)*0.1/1.093),2) 'microns '];
     title(worstX)
 
     subplot(2,2,2)
@@ -70,7 +70,7 @@ if SHOW_ERRORS
     hold on
     Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
     imshow(Imarker2)
-    worstX = ['X error: ' num2str(dxMax(end-1)*0.1/1.093) 'microns '];
+    worstX = ['X error: ' num2str(round(dxMax(end-1)*0.1/1.093),2) 'microns '];
     title(worstX)
 
     subplot(2,2,3)
@@ -85,7 +85,7 @@ if SHOW_ERRORS
     hold on
     Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
     imshow(Imarker2)
-    worstX = ['X error: ' num2str(dxMax(end-2)*0.1/1.093) 'microns '];
+    worstX = ['X error: ' num2str(round(dxMax(end-2)*0.1/1.093),2) 'microns '];
     title(worstX)
 
     subplot(2,2,4)
@@ -100,7 +100,7 @@ if SHOW_ERRORS
     hold on
     Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
     imshow(Imarker2)
-    worstX = ['X error: ' num2str(dxMax(end-3)*0.1/1.093) 'microns '];
+    worstX = ['X error: ' num2str(round(dxMax(end-3)*0.1/1.093),2) 'microns '];
     title(worstX)
 
     %% show worst Y errors
@@ -119,7 +119,7 @@ if SHOW_ERRORS
     hold on
     Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
     imshow(Imarker2)
-    worstX = ['Y error: ' num2str(dxMax(end)*0.1/1.093) 'microns '];
+    worstX = ['Y error: ' num2str(round(dxMax(end)*0.1/1.093),2) 'microns '];
     title(worstX)
 
     subplot(2,2,2)
@@ -134,7 +134,7 @@ if SHOW_ERRORS
     hold on
     Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
     imshow(Imarker2)
-    worstX = ['Y error: ' num2str(dxMax(end-1)*0.1/1.093) 'microns '];
+    worstX = ['Y error: ' num2str(round(dxMax(end-1)*0.1/1.093),2) 'microns '];
     title(worstX)
 
     subplot(2,2,3)
@@ -149,7 +149,7 @@ if SHOW_ERRORS
     hold on
     Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
     imshow(Imarker2)
-    worstX = ['Y error: ' num2str(dxMax(end-2)*0.1/1.093) 'microns '];
+    worstX = ['Y error: ' num2str(round(dxMax(end-2)*0.1/1.093),2) 'microns '];
     title(worstX)
 
     subplot(2,2,4)
@@ -164,18 +164,18 @@ if SHOW_ERRORS
     hold on
     Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
     imshow(Imarker2)
-    worstX = ['Y error: ' num2str(dxMax(end-3)*0.1/1.093) 'microns '];
+    worstX = ['Y error: ' num2str(round(dxMax(end-3)*0.1/1.093),2) 'microns '];
     title(worstX)
     
-    fprintf('Worst X: %s\n\n', val_data.file(dxIdx(end)));
-    fprintf('Worst Y: %s\n\n', val_data.file(dyIdx(end)));
+%     fprintf('Worst X: %s\n\n', val_data.file(dxIdx(end)));
+%     fprintf('Worst Y: %s\n\n', val_data.file(dyIdx(end)));
 
 end
 %% error histogram
 figure()
 subplot(3,1,1)
 histogram(dx_um)
-xlim([-7 3.5])
+xlim('auto')
 % axis tight
 ylabel('dx bin')
 xlabel('microns')
@@ -183,7 +183,7 @@ title('XYZ error histogram')
     
 subplot(3,1,2)
 histogram(dy_um)
-xlim([-1.75 2.5])
+xlim('auto')
 
 % axis tight
 ylabel('dy bin')
@@ -192,7 +192,7 @@ xlabel('microns')
 subplot(3,1,3)
 histogram(dz_um)
 % axis tight
-xlim([-2.5 2.5])
+xlim('auto')
 
 ylabel('dz bin')
 xlabel('microns')

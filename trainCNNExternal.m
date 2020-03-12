@@ -9,7 +9,7 @@ clc
 fprintf('Loading datastores...\n')
 
 % lab rig
-% load('C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\Training and Validation Data\11-Mar-2020-data\pipetteXYZ-table-11-Mar-2020.mat')
+% load('C:\Users\myip7\Dropbox (GaTech)\Shared folders\Pipette and cell finding\2019-2020 NET\Training and Validation Data\11-Mar-2020-data\pipetteXYZ-table-12-Mar-2020.mat')
 
 SHOW_TRAIN_DETAIL = false;
 SHOW_LAYERS = false;
@@ -102,13 +102,16 @@ gpuDevice(1);
 if CUSTOM_TRAIN
     dlnet = dlnetwork(lgraph);
 else
-    options = trainingOptions('rmsprop',...
+    options = trainingOptions('adam',...
         'MiniBatchSize',16, ... %subset of training data used for each epoch
-        'MaxEpochs',50, ... % total times to go through all training data
-        'InitialLearnRate',1e-4, ...% changed from 1e-4
+        'MaxEpochs',40, ... % total times to go through all training data
+        'InitialLearnRate',1e-3, ...% changed from 1e-4
+        'GradientDecayFactor',0.9,... % recommended default
+        'SquaredGradientDecayFactor',.999,... % recommended default
+        'Epsilon',1e-8,...% recommended default
         'LearnRateSchedule','piecewise',...
         'LearnRateDropFactor',.09,...
-        'LearnRateDropPeriod',10,...
+        'LearnRateDropPeriod',5,...
         'ValidationData',val_imds, ... % image datastore with validation data
         'ValidationFrequency',50, ... % changed from 30
         'ValidationPatience',Inf, ... % stop training if asymptotic at 20 epochs
@@ -118,7 +121,6 @@ else
         'Plots','training-progress',... % show plot during training
         'Shuffle','every-epoch'); % don't throw away same data each time
 end
-
 
         
 %% train network
