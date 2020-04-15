@@ -102,16 +102,13 @@ gpuDevice(1);
 if CUSTOM_TRAIN
     dlnet = dlnetwork(lgraph);
 else
-    options = trainingOptions('adam',...
+    options = trainingOptions('rmsprop',...
         'MiniBatchSize',16, ... %subset of training data used for each epoch
-        'MaxEpochs',40, ... % total times to go through all training data
-        'InitialLearnRate',1e-3, ...% changed from 1e-4
-        'GradientDecayFactor',0.9,... % recommended default
-        'SquaredGradientDecayFactor',.999,... % recommended default
-        'Epsilon',1e-8,...% recommended default
+        'MaxEpochs',60, ... % total times to go through all training data
+        'InitialLearnRate',1e-4, ...% changed from 1e-4
         'LearnRateSchedule','piecewise',...
         'LearnRateDropFactor',.09,...
-        'LearnRateDropPeriod',5,...
+        'LearnRateDropPeriod',10,...
         'ValidationData',val_imds, ... % image datastore with validation data
         'ValidationFrequency',50, ... % changed from 30
         'ValidationPatience',Inf, ... % stop training if asymptotic at 20 epochs

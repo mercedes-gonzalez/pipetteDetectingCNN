@@ -1,15 +1,18 @@
-function testRegressionExternal(net,val_imds,val_data)
 tic
-% this file is used to test the pipette regression analysis data
-% 
-% Colby Lewallen. August 2018
-% Updated Mercedes Gonzalez M 2020
+%{
+    This script is used to test the pipette regression analysis data. 
+    Make sure val_imds, val_data, and net are variables in the wksp
+    
+    Colby Lewallen. August 2018
+    Updated Mercedes Gonzalez March 2020
 
-n = 9; % size of marker
+%} 
+
+marker_size = 9; % size of marker
 c1 = 'cyan'; % Real position
 c2 = 'red'; % Guess
 SHOW_ERRORS = true; % supress plotting errors
-newsize = 224; 
+new_dimension = 224; 
 
 % use the CNN to guess the position <x,y,z> of the pipette
 guess = predict(net,val_imds);
@@ -44,157 +47,150 @@ if SHOW_ERRORS
     minDimension = min(originalSize);
 
     subplot(2,2,1)
-    I = imread(val_data.file(dxIdx(end)));
-    posReal = val_data.xyz(dxIdx(end),1:2);
-    posGuess = guess(dxIdx(end),1:2);
-    pos = [posReal; posGuess];
-    transformedpoint = pos; 
-    transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension;
-    transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
-    Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',n);
-    hold on
-    Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
-    imshow(Imarker2)
-    worstX = ['X error: ' num2str(round(dxMax(end)*0.1/1.093),2) 'microns '];
-    title(worstX)
+        I = imread(val_data.file(dxIdx(end)));
+        posReal = val_data.xyz(dxIdx(end),1:2);
+        posGuess = guess(dxIdx(end),1:2);
+        pos = [posReal; posGuess];
+        transformedpoint = pos; 
+        transformedpoint(:,1) = new_dimension*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension;
+        transformedpoint(:,2) = new_dimension*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+        Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',marker_size);
+        hold on
+        Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',marker_size);
+        imshow(Imarker2)
+        worstX = ['X error: ' num2str(round(dxMax(end)*0.1/1.093),2) 'microns '];
+        title(worstX)
 
     subplot(2,2,2)
-    I = imread(val_data.file(dxIdx(end-1)));
-    posReal = val_data.xyz(dxIdx(end-1),1:2);
-    posGuess = guess(dxIdx(end-1),1:2);
-    pos = [posReal; posGuess];
-    transformedpoint = pos; 
-    transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
-    transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
-    Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',n);
-    hold on
-    Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
-    imshow(Imarker2)
-    worstX = ['X error: ' num2str(round(dxMax(end-1)*0.1/1.093),2) 'microns '];
-    title(worstX)
+        I = imread(val_data.file(dxIdx(end-1)));
+        posReal = val_data.xyz(dxIdx(end-1),1:2);
+        posGuess = guess(dxIdx(end-1),1:2);
+        pos = [posReal; posGuess];
+        transformedpoint = pos; 
+        transformedpoint(:,1) = new_dimension*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+        transformedpoint(:,2) = new_dimension*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+        Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',marker_size);
+        hold on
+        Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',marker_size);
+        imshow(Imarker2)
+        worstX = ['X error: ' num2str(round(dxMax(end-1)*0.1/1.093),2) 'microns '];
+        title(worstX)
 
     subplot(2,2,3)
-    I = imread(val_data.file(dxIdx(end-2)));
-    posReal = val_data.xyz(dxIdx(end-2),1:2);
-    posGuess = guess(dxIdx(end-2),1:2);
-    pos = [posReal; posGuess];
-    transformedpoint = pos; 
-    transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
-    transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
-    Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',n);
-    hold on
-    Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
-    imshow(Imarker2)
-    worstX = ['X error: ' num2str(round(dxMax(end-2)*0.1/1.093),2) 'microns '];
-    title(worstX)
+        I = imread(val_data.file(dxIdx(end-2)));
+        posReal = val_data.xyz(dxIdx(end-2),1:2);
+        posGuess = guess(dxIdx(end-2),1:2);
+        pos = [posReal; posGuess];
+        transformedpoint = pos; 
+        transformedpoint(:,1) = new_dimension*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+        transformedpoint(:,2) = new_dimension*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+        Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',marker_size);
+        hold on
+        Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',marker_size);
+        imshow(Imarker2)
+        worstX = ['X error: ' num2str(round(dxMax(end-2)*0.1/1.093),2) 'microns '];
+        title(worstX)
 
     subplot(2,2,4)
-    I = imread(val_data.file(dxIdx(end-3)));
-    posReal = val_data.xyz(dxIdx(end-3),1:2);
-    posGuess = guess(dxIdx(end-3),1:2);
-    pos = [posReal; posGuess];
-    transformedpoint = pos; 
-    transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
-    transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
-    Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',n);
-    hold on
-    Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
-    imshow(Imarker2)
-    worstX = ['X error: ' num2str(round(dxMax(end-3)*0.1/1.093),2) 'microns '];
-    title(worstX)
+        I = imread(val_data.file(dxIdx(end-3)));
+        posReal = val_data.xyz(dxIdx(end-3),1:2);
+        posGuess = guess(dxIdx(end-3),1:2);
+        pos = [posReal; posGuess];
+        transformedpoint = pos; 
+        transformedpoint(:,1) = new_dimension*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+        transformedpoint(:,2) = new_dimension*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+        Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',marker_size);
+        hold on
+        Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',marker_size);
+        imshow(Imarker2)
+        worstX = ['X error: ' num2str(round(dxMax(end-3)*0.1/1.093),2) 'microns '];
+        title(worstX)
 
     %% show worst Y errors
     figure()
     [dyMax,dyIdx] = sort(abs(dy));
 
     subplot(2,2,1)
-    I = imread(val_data.file(dyIdx(end)));
-    posReal = val_data.xyz(dyIdx(end),1:2);
-    posGuess = guess(dyIdx(end),1:2);
-    pos = [posReal; posGuess];
-    transformedpoint = pos; 
-    transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
-    transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
-    Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',n);
-    hold on
-    Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
-    imshow(Imarker2)
-    worstX = ['Y error: ' num2str(round(dxMax(end)*0.1/1.093),2) 'microns '];
-    title(worstX)
+        I = imread(val_data.file(dyIdx(end)));
+        posReal = val_data.xyz(dyIdx(end),1:2);
+        posGuess = guess(dyIdx(end),1:2);
+        pos = [posReal; posGuess];
+        transformedpoint = pos; 
+        transformedpoint(:,1) = new_dimension*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+        transformedpoint(:,2) = new_dimension*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+        Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',marker_size);
+        hold on
+        Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',marker_size);
+        imshow(Imarker2)
+        worstX = ['Y error: ' num2str(round(dyMax(end)*0.1/1.093),2) 'microns '];
+        title(worstX)
 
     subplot(2,2,2)
-    I = imread(val_data.file(dyIdx(end-1)));
-    posReal = val_data.xyz(dyIdx(end-1),1:2);
-    posGuess = guess(dyIdx(end-1),1:2);
-    pos = [posReal; posGuess];
-    transformedpoint = pos; 
-    transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
-    transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
-    Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',n);
-    hold on
-    Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
-    imshow(Imarker2)
-    worstX = ['Y error: ' num2str(round(dxMax(end-1)*0.1/1.093),2) 'microns '];
-    title(worstX)
+        I = imread(val_data.file(dyIdx(end-1)));
+        posReal = val_data.xyz(dyIdx(end-1),1:2);
+        posGuess = guess(dyIdx(end-1),1:2);
+        pos = [posReal; posGuess];
+        transformedpoint = pos; 
+        transformedpoint(:,1) = new_dimension*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+        transformedpoint(:,2) = new_dimension*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+        Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',marker_size);
+        hold on
+        Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',marker_size);
+        imshow(Imarker2)
+        worstX = ['Y error: ' num2str(round(dyMax(end-1)*0.1/1.093),2) 'microns '];
+        title(worstX)
 
     subplot(2,2,3)
-    I = imread(val_data.file(dyIdx(end-2)));
-    posReal = val_data.xyz(dyIdx(end-2),1:2);
-    posGuess = guess(dyIdx(end-2),1:2);
-    pos = [posReal; posGuess];
-    transformedpoint = pos; 
-    transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
-    transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
-    Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',n);
-    hold on
-    Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
-    imshow(Imarker2)
-    worstX = ['Y error: ' num2str(round(dxMax(end-2)*0.1/1.093),2) 'microns '];
-    title(worstX)
+        I = imread(val_data.file(dyIdx(end-2)));
+        posReal = val_data.xyz(dyIdx(end-2),1:2);
+        posGuess = guess(dyIdx(end-2),1:2);
+        pos = [posReal; posGuess];
+        transformedpoint = pos; 
+        transformedpoint(:,1) = new_dimension*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+        transformedpoint(:,2) = new_dimension*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+        Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',marker_size);
+        hold on
+        Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',marker_size);
+        imshow(Imarker2)
+        worstX = ['Y error: ' num2str(round(dyMax(end-2)*0.1/1.093),2) 'microns '];
+        title(worstX)
 
     subplot(2,2,4)
-    I = imread(val_data.file(dyIdx(end-3)));
-    posReal = val_data.xyz(dyIdx(end-3),1:2);
-    posGuess = guess(dyIdx(end-3),1:2);
-    pos = [posReal; posGuess];
-    transformedpoint = pos; 
-    transformedpoint(:,1) = newsize*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
-    transformedpoint(:,2) = newsize*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
-    Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',n);
-    hold on
-    Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',n);
-    imshow(Imarker2)
-    worstX = ['Y error: ' num2str(round(dxMax(end-3)*0.1/1.093),2) 'microns '];
-    title(worstX)
-    
-%     fprintf('Worst X: %s\n\n', val_data.file(dxIdx(end)));
-%     fprintf('Worst Y: %s\n\n', val_data.file(dyIdx(end)));
+        I = imread(val_data.file(dyIdx(end-3)));
+        posReal = val_data.xyz(dyIdx(end-3),1:2);
+        posGuess = guess(dyIdx(end-3),1:2);
+        pos = [posReal; posGuess];
+        transformedpoint = pos; 
+        transformedpoint(:,1) = new_dimension*((pos(:,1)+(xsize/2))-(xsize-minDimension)/2)/minDimension; 
+        transformedpoint(:,2) = new_dimension*((pos(:,2)+(ysize/2))-(ysize-minDimension)/2)/minDimension;
+        Imarker = insertMarker(I,transformedpoint(1,:),'Color',c1,'Size',marker_size);
+        hold on
+        Imarker2 = insertMarker(Imarker,transformedpoint(2,:),'Color',c2,'Size',marker_size);
+        imshow(Imarker2)
+        worstX = ['Y error: ' num2str(round(dyMax(end-3)*0.1/1.093),2) 'microns '];
+        title(worstX)
 
 end
-%% error histogram
+%% plot error histograms to show repeatability 
 figure()
+
 subplot(3,1,1)
-histogram(dx_um)
-xlim('auto')
-% axis tight
-ylabel('dx bin')
-xlabel('microns')
-title('XYZ error histogram')
+    histogram(dx_um)
+    xlim('auto')
+    ylabel('dx bin')
+    xlabel('microns')
+    title('XYZ error histogram')
     
 subplot(3,1,2)
-histogram(dy_um)
-xlim('auto')
-
-% axis tight
-ylabel('dy bin')
-xlabel('microns')
+    histogram(dy_um)
+    xlim('auto')
+    ylabel('dy bin')
+    xlabel('microns')
     
 subplot(3,1,3)
-histogram(dz_um)
-% axis tight
-xlim('auto')
+    histogram(dz_um)
+    xlim('auto')
+    ylabel('dz bin')
+    xlabel('microns')
 
-ylabel('dz bin')
-xlabel('microns')
 timeToTest = toc
-end
